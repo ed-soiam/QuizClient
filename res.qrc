@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>image/all_well.jpg</file>
         <file>image/not_reg.jpg</file>
+        <file>image/tick.png</file>
     </qresource>
 </RCC>

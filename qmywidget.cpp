@@ -11,23 +11,31 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
     h_BoxLayout2->setSizeConstraint(QLayout::SetMaximumSize);
     gridButton=new QGridLayout();
     spacerItem=new QSpacerItem(1,1,QSizePolicy::Minimum,QSizePolicy::Expanding); //Растяжка
-
-
+    QFrame* frameButton=new QFrame();
     buttonConnect = new QToolButton();//"Подключить");
     buttonConnect->setText("Подключить");
     buttonUpdate = new QToolButton();//("Обновить");
     buttonUpdate->setText("Обновить");
     buttonRegister=new QToolButton();//("Регистрация");
-    buttonRegister->setText("Регистрация");
+    buttonRegister->setText("Регистрация");    
     myTextEdit = new QTextEdit;
     comBoxIP = new QComboBox;
-
-    labelIP=new QLabel("Адрес");  
-//    labelIP->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
+    comBoxIP->setMinimumContentsLength(13);
+    labelIP=new QLabel("Адрес");
+    buttonConnect->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    buttonUpdate->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    buttonRegister->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    comBoxIP->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    labelIP->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
 
 
     setLayout(v_BoxLayout);
-    v_BoxLayout->addLayout(h_BoxLayout);
+ //   v_BoxLayout->addLayout(h_BoxLayout);
+    v_BoxLayout->addWidget(frameButton);
+    frameButton->setFrameShape(QFrame::Panel);
+    frameButton->setLayout(h_BoxLayout);
+
+
     h_BoxLayout->addWidget(labelIP);
     h_BoxLayout->addWidget(comBoxIP);
     h_BoxLayout->addWidget(buttonConnect);
@@ -37,7 +45,7 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
     h_BoxLayout2->addLayout(gridButton);
     h_BoxLayout2->addItem(spacerItem);
 
-    strNameImage<<":/image/not_reg.jpg"<<":/image/all_well.jpg";    //Необходимо обязательно создать файл ресурса. Добавляется аналогично как класс
+    strNameImage<<":/image/not_reg.jpg"<<":/image/tick.png";    //Необходимо обязательно создать файл ресурса. Добавляется аналогично как класс
     QPixmap pixmap(strNameImage[0]);
 //Пробовал с QScopedPointer. Обьтект удаляется при выходе из поля видимости. Принудительно его не нужно удалять
 //    QScopedPointer <QLabel> labelImage(new QLabel());
@@ -48,12 +56,11 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
 //Второй способ выделения памяти для умной переменной. Выделяем память как для локальной переменой, а после присваиваем ее глобальной.
 //Уную переменную нельзя инициализировать как обычную переменную
     labelImage = QSharedPointer<QLabel>(new QLabel());
+    labelImage->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
     labelImage->setPixmap(pixmap.scaledToHeight(17));
-    h_BoxLayout->addWidget(labelImage.data());
+    h_BoxLayout->addWidget(labelImage.data()); //Для использования умной меременной нужно использовать data()
     //h_BoxLayout->addWidget(labelImage.data());
     //h_BoxLayout->addWidget(labelImage);
-
-
 
       connect (buttonConnect , SIGNAL(clicked()),this, SLOT(slotButtonConnect()));
       connect (buttonUpdate , SIGNAL(clicked()),this, SLOT(slotButtonUpdate()));
@@ -107,6 +114,17 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
   void QMyWidget::slotRegSuccessfully(bool regS) //Благополучная регистрация
   {
       bool registerQuiz=regS;
+
+      if(registerQuiz==true)
+      {
+          QPixmap pixmapWell(strNameImage[1]);
+          labelImage->setPixmap(pixmapWell.scaledToHeight(17));
+      }
+      else
+      {
+          QPixmap pixmapBed(strNameImage[0]);
+          labelImage->setPixmap(pixmapBed.scaledToHeight(17));
+      }
 
   }
   void QMyWidget::slotButtonUpdate() //Обновление списка подключений в comboBox

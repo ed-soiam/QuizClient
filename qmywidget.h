@@ -43,10 +43,13 @@ private:
     bool connectSocket=false;
     QSettings app_settings;
     QString settings_register_key();//Генерация и сохранение в реестре ключа регистрации
-    QSharedPointer<QLabel> labelImage;
+    QSharedPointer<QLabel> labelImage; //Умный указатель нужно инициализировать при создании конструктора или инициализировать при помощи оператора присвоения
+    //в самом конструкторе (присвоение указателя локально-созданной переменной глобальной переменной класса
+    //h_BoxLayout->addWidget(labelImage.data()); //Для применения умной меременной нужно использовать data()
 //    QScopedPointer<QLabel> labelImage;
 //    QPointer<QLabel> labelImage;
     QList<QString> strNameImage;
+
 
 public slots:
     void slotButtonConnect();  //Подключение
