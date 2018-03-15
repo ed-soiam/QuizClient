@@ -18,6 +18,14 @@ int main(int argc, char *argv[])
     w.setWindowTitle("Викторина"); //Смена названия
 
     w.show();
-
+ /*
+    if(argc>1)
+    {
+        if(argv[1]!=0)
+        {
+            w.myOpenFile(QString (QLatin1String(argv[1])));
+        }
+    }
+*/
     return a.exec();
 }

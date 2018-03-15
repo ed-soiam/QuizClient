@@ -1,6 +1,8 @@
 #include "qmywidget.h"
 
-QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)
+QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
+    //labelImage(new QLabel()) //первый способ инициализации умной переменной - инициализация при создании класса new QLabel
+    //Воторой способ описан ниже - инициализация при помощи присвоения локального обьекта глобальной переменной.
 {
 
     v_BoxLayout = new QVBoxLayout;
@@ -8,25 +10,21 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)
     h_BoxLayout2=new QHBoxLayout;
     h_BoxLayout2->setSizeConstraint(QLayout::SetMaximumSize);
     gridButton=new QGridLayout();
-
-    spacerItem=new QSpacerItem(1,1,QSizePolicy::Minimum,QSizePolicy::Expanding);
+    spacerItem=new QSpacerItem(1,1,QSizePolicy::Minimum,QSizePolicy::Expanding); //Растяжка
 
 
     buttonConnect = new QToolButton();//"Подключить");
     buttonConnect->setText("Подключить");
     buttonUpdate = new QToolButton();//("Обновить");
     buttonUpdate->setText("Обновить");
-    //buttonScript = new QToolButton();//("Выполнить текущий скрипт");
     buttonRegister=new QToolButton();//("Регистрация");
     buttonRegister->setText("Регистрация");
     myTextEdit = new QTextEdit;
-    myTextEditEnt = new QTextEdit;
     comBoxIP = new QComboBox;
 
-    labelIP=new QLabel("Адрес");
-    labelReg=new QLabel("Не зарегистрирован!");
-    labelIP->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
-    labelReg->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
+    labelIP=new QLabel("Адрес");  
+//    labelIP->setSizePolicy(QSizePolicy::Maximum,QSizePolicy::Maximum);
+
 
     setLayout(v_BoxLayout);
     v_BoxLayout->addLayout(h_BoxLayout);
@@ -39,35 +37,30 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)
     h_BoxLayout2->addLayout(gridButton);
     h_BoxLayout2->addItem(spacerItem);
 
+    strNameImage<<":/image/not_reg.jpg"<<":/image/all_well.jpg";    //Необходимо обязательно создать файл ресурса. Добавляется аналогично как класс
+    QPixmap pixmap(strNameImage[0]);
+//Пробовал с QScopedPointer. Обьтект удаляется при выходе из поля видимости. Принудительно его не нужно удалять
+//    QScopedPointer <QLabel> labelImage(new QLabel());
+//Пробовал с QPointer. При удаление обьекта, выделенной памяти присваивается Q_NULLPTR. Обьект сам не удаляется при выходе из поля видимости
+//    QPointer <QLabel> labelImage(new QLabel());
+
+//**********************************************************************Нужно запомнить
+//Второй способ выделения памяти для умной переменной. Выделяем память как для локальной переменой, а после присваиваем ее глобальной.
+//Уную переменную нельзя инициализировать как обычную переменную
+    labelImage = QSharedPointer<QLabel>(new QLabel());
+    labelImage->setPixmap(pixmap.scaledToHeight(17));
+    h_BoxLayout->addWidget(labelImage.data());
+    //h_BoxLayout->addWidget(labelImage.data());
+    //h_BoxLayout->addWidget(labelImage);
 
 
-
-
-
-  //Тестовые
-  /*    comboBoxGame=new QComboBox();
-      comboBoxGame->addItem("Game 1");
-      comboBoxGame->addItem("Game 2");
-      myVBoxLayout->addWidget(comboBoxGame);
-      buttonChoice=new QPushButton("Выбор игры");
-      myVBoxLayout->addWidget(buttonChoice);
-      myVBoxLayout->addWidget(myLabelEntText);
-      myVBoxLayout->addWidget(myTextEditEnt);
-      myVBoxLayout->addWidget(buttonScript);*/
-  //    myVBoxLayout->addWidget(myLabelAnswer);
-  //    myVBoxLayout->addWidget(myTextEdit);
 
       connect (buttonConnect , SIGNAL(clicked()),this, SLOT(slotButtonConnect()));
       connect (buttonUpdate , SIGNAL(clicked()),this, SLOT(slotButtonUpdate()));
       connect (buttonRegister , SIGNAL(clicked()),this, SLOT(slotButtonRegister()));
 
-      //connect(buttonReset,SIGNAL(clicked(bool)),this,SLOT(slotChoiceMenu(QString)));
-      //connect(managerInfo , SIGNAL(addrTextEdit(QString)),this, SLOT(slotAddrTextEdit(QString)));
-      //connect(QSHManagerInfo::socket,SIGNAL(signalConnected(bool)),this,SLOT(slotSetConnectSocket(bool)));//Сигнал о подключении сокета
-
       connectHost = new MyClient();
       connect(connectHost , SIGNAL(signalAddrForComboBox(QList<QHostAddress>)),this, SLOT(slotAddrForComboBox(QList<QHostAddress>)));
-      startWidget=true;
   }
 
   QMyWidget::~QMyWidget()
@@ -75,11 +68,8 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)
       delete v_BoxLayout;
       delete buttonConnect;
       delete myTextEdit;
-      delete myTextEditEnt;
       delete comBoxIP;
-      delete labelIP;
-      delete labelReg;
-      //delete myLabelEntText;
+      delete labelIP;  
       if (managerInfo != Q_NULLPTR)
           delete managerInfo;
       delete buttonRegister;
@@ -114,20 +104,15 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)
       }
   }
 
-  void QMyWidget::slotRegSuccessfully(bool regS)
+  void QMyWidget::slotRegSuccessfully(bool regS) //Благополучная регистрация
   {
-      registerQuiz=regS;
-      if(registerQuiz==true)
-          labelReg->setText("Зарегистрирован");
-      else
-          labelReg->setText("Не зарегистрирован");
+      bool registerQuiz=regS;
 
   }
   void QMyWidget::slotButtonUpdate() //Обновление списка подключений в comboBox
-  {
-      if(startWidget){
-          comBoxIP->clear();
-          connectHost->updateConnectHost();}
+  {    
+       comBoxIP->clear();
+       connectHost->updateConnectHost();
   }
 
   void QMyWidget::slotAddrForComboBox(QList<QHostAddress> openSocketList) //Добавление обнаруженых открытх портов и добавление в comboBox
@@ -241,44 +226,5 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)
       QString commandRegister=QString("{\"class\":\"netro\", \"command\":\"register\", \"label\":1, \"key\":\"%1\"}").arg(settings_register_key());
       managerInfo->sendCommand(commandRegister,QJSONTask::JSON_ANSWER_STANDARD_REG);
   }
-  /*
-  void QMyWidget::load_settings() //Получение настроек из реестра
-  {
 
-  }
 
-  void QMyWidget::slotButtonSendScript() //Выполнить текущий скрипт
-  {
-      if(connectSocket)
-      {
-          QString strCommand;
-          strCommand=myTextEditEnt->toPlainText();
-          if(!strCommand.isNull()){
-              managerInfo->sendMyEvent(strCommand);
-              myTextEdit->append("Команда принята к обработке");}
-      }
-  }*/
-
-  /*
-  void QMyWidget::slotSelectionGame() //Ручной выбор варианта игры. Имитация команды от сервера. Временный.
-  {
-      if(statusGame==false)
-      {
-          emit signalChoiceMenu(comboBoxGame->currentIndex());
-          statusGame=true;
-      }
-      else
-      {
-          emit signalDelWidget();
-          emit signalChoiceMenu(comboBoxGame->currentIndex());
-          statusGame==false;
-      }
-  }*/
-
-  /*
-  void QMyWidget::slotAddrTextEdit(QString _answer) //Вывод сообщений и ответов в textEdit
-  {
-      myTextEdit->append(_answer);
-      myTextEdit->append("Команда успешно выполнена");
-  }
-  */

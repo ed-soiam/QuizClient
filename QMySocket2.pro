@@ -53,3 +53,6 @@ HEADERS  += mainwindow.h \
     mytcpsocket.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES += \
+    res.qrc

@@ -9,9 +9,7 @@
 #include <QTcpSocket>
 #include <QtWidgets>
 #include "myclient.h"
-//#include "qmywidget.h"
 #include "QThreadSocket.h"
-//#include <QThreadSocket.h>
 #include "qtask.h"
 #include "qjsontask.h"
 #include "qshmanagerinfo.h"
@@ -20,8 +18,6 @@
 #include <QPushButton>
 #include <QSpacerItem>
 
-
-
 class QMyWidget : public QWidget
 {
     Q_OBJECT
@@ -29,76 +25,41 @@ public:
     explicit QMyWidget(QWidget *parent = 0);
     ~QMyWidget();
 
-
-signals:
-    //void finished_socket();
-
 private:
     MyClient * connectHost;    
     QHBoxLayout* h_BoxLayout;
     QHBoxLayout* h_BoxLayout2;
     QVBoxLayout* v_BoxLayout;
     QSpacerItem* spacerItem;
-
-    QGridLayout* gridBaseLayout;
+    QGridLayout* gridButton; //Сетка для вывода кнопок
     QToolButton* buttonConnect;
     QToolButton* buttonUpdate;
-    QToolButton* buttonScript;
-    QTextEdit* myTextEdit;
-    QTextEdit* myTextEditEnt;
-    QComboBox* comBoxIP;
-
-    QLabel* labelIP;
-    QLabel* labelReg;
-    QThreadSocket* myThreadSocket;
-    QThreadSocket* myThreadSocket2;
-    bool startWidget=false;
-    //QTask* myTask;
-    QJSONTask* myJsonTask;
-    QByteArray dataGetManagerInfo;
-    QSHManagerInfo* managerInfo=0;
-    QString commandString;
-    bool connectSocket=false;    
-//********************************************
-//Кнопки выбора для викторины
-
-
-    QList<QPushButton*> listPushButton; //Список кнопок
-    QGridLayout* gridButton;
-    void menuButtonGame(); //Вывод одноко из меню
-
-//Генерация и сохранение в реестре ключа регистрации
-    QSettings app_settings;
-    QString settings_register_key();
     QToolButton* buttonRegister;
-    bool registerQuiz=false;  //Регистрация. Возможно можно как ни будь убрать
+    QList<QPushButton*> listPushButton; //Список кнопок
+    QTextEdit* myTextEdit;
+    QComboBox* comBoxIP;
+    QLabel* labelIP;
+    QSHManagerInfo* managerInfo=0;//Подключение
+    bool connectSocket=false;
+    QSettings app_settings;
+    QString settings_register_key();//Генерация и сохранение в реестре ключа регистрации
+    QSharedPointer<QLabel> labelImage;
+//    QScopedPointer<QLabel> labelImage;
+//    QPointer<QLabel> labelImage;
+    QList<QString> strNameImage;
 
-//Тестовые
-/*    QPushButton * buttonChoice; //Возможно выбор варианта меню
-    QComboBox * comboBoxGame;
-    bool statusGame=false;
-    void load_settings(); //Извлечение настроек сохраненных в реестре
-*/
 public slots:
     void slotButtonConnect();  //Подключение
     void slotButtonUpdate();   //Обновление списка вожможных подключений
     void slotAddrForComboBox(QList<QHostAddress> openSocketList);
-    void slotSetConnectSocket(bool value);
+    void slotSetConnectSocket(bool value); //Наличие подключения
     void slotButtonGame();     //Отправка команд
     void slotChoiceMenu(QStringList numberMenu); //Выбора варианта меню.
     void slotButtonRegister(); //Кнопка регистрации
-    void slotRegSuccessfully(bool regS);
-    //void slotAddrTextEdit(QString _answer);
-    //void slotButtonSendScript();
-    //void slotDelWidget();
-    //void slotSelectionGame();//Ручной выбор варианта игры Тест
+    void slotRegSuccessfully(bool regS); //Наличие регистрации
+
 signals:
     void signalChoiceMenu(int numberMenu);
-    void signalDelWidget();
-
-
-
-
 
 };
 
