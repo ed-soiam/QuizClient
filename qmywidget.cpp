@@ -4,7 +4,6 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
     //labelImage(new QLabel()) //первый способ инициализации умной переменной - инициализация при создании класса new QLabel
     //Воторой способ описан ниже - инициализация при помощи присвоения локального обьекта глобальной переменной.
 {
-
     v_BoxLayout = new QVBoxLayout;
     h_BoxLayout=new QHBoxLayout;
     h_BoxLayout2=new QHBoxLayout;
@@ -18,7 +17,7 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
     buttonUpdate->setText("Обновить");
     buttonRegister=new QToolButton();//("Регистрация");
     buttonRegister->setText("Регистрация");    
-    myTextEdit = new QTextEdit;
+    //myTextEdit = new QTextEdit;
     comBoxIP = new QComboBox;
     comBoxIP->setMinimumContentsLength(13);
     labelIP=new QLabel("Адрес");
@@ -72,20 +71,31 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
 
   QMyWidget::~QMyWidget()
   {
-      delete v_BoxLayout;
-      delete buttonConnect;
-      delete myTextEdit;
-      delete comBoxIP;
-      delete labelIP;  
+      delete connectHost;
       if (managerInfo != Q_NULLPTR)
           delete managerInfo;
+      if(!listPushButton.isEmpty()) //Удаление кнопкок если прокрамма была закрыта принудительно до их самоуничтожения.
+      {
+          for(int i=0; i<listPushButton.length(); i++)
+              if(listPushButton[i]!=Q_NULLPTR)
+              {
+                  delete listPushButton[i];
+                  listPushButton[i]=Q_NULLPTR;
+              }
+      }
+      delete labelIP;
+      delete comBoxIP;
+      delete buttonConnect;
+      delete buttonUpdate;
       delete buttonRegister;
-      //delete comboBoxGame;
- /*     if (gridButton != Q_NULLPTR)
-          delete gridButton;
-      if (labelNameGame != Q_NULLPTR)
-          delete labelNameGame;*/
-
+      h_BoxLayout2->removeItem(spacerItem);//Удаляет элемент макета из макета. Ответственность вызывающего абонента заключается в удалении элемента.
+      //Обратите внимание, что элемент может быть макетом (поскольку QLayout наследует QLayoutItem).
+      //Без этого нельзя удалить Layout
+      delete spacerItem;
+      delete gridButton;
+      delete h_BoxLayout;
+      delete h_BoxLayout2;
+      delete v_BoxLayout;
   }
 
   void QMyWidget :: slotButtonConnect() //Слот для подключения с адресом указанным в comboBox
@@ -98,7 +108,7 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
           {
               buttonConnect->setText("Подключить");
               connectSocket=false;
-              myTextEdit->append("Поток инрефейса остановлен");
+              //myTextEdit->append("Поток инрефейса остановлен");
           }
       }
       else if (managerInfo == Q_NULLPTR)
@@ -152,17 +162,17 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
   void QMyWidget::slotChoiceMenu(QStringList numberMenu) //Слот выбора варианта меню.
   {
       QStringList listStringButton;
-      listStringButton=numberMenu;
-      //qDebug()<<listStringButton;
+      listStringButton=numberMenu;      
 
       if(listStringButton.isEmpty()) //Удаление меню предыдущего варианта игры
       {
           if (!listPushButton.isEmpty())
           {
-              for(int i=0; i<listPushButton.length();i++)
+              for(int i=0; i<listPushButton.length();i++){
                   delete listPushButton[i];
-//              if(listPushButton.length()>1)
-//                      delete gridButton;
+                  listPushButton[i]=Q_NULLPTR;  //Выделенная память не больше не занята
+              }
+
               listPushButton.clear();
           }
       }

@@ -36,7 +36,7 @@ private:
     QToolButton* buttonUpdate;
     QToolButton* buttonRegister;
     QList<QPushButton*> listPushButton; //Список кнопок
-    QTextEdit* myTextEdit;
+    //QTextEdit* myTextEdit;
     QComboBox* comBoxIP;
     QLabel* labelIP;
     QSHManagerInfo* managerInfo=0;//Подключение

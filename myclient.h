@@ -14,13 +14,9 @@
 #include <QTime>
 #include <QtWidgets>
 #include <QList>
-//#include <myThreadSocket/QThreadSocket.h>
 #include <mytcpsocket.h>
-//#include <QCoreApplication>
-//#include <iostream>
 
-
-
+//Поиск открытых портов для подключения
 class MyClient : public QObject
 {
     Q_OBJECT
@@ -31,10 +27,8 @@ public:
 
 private:
     void myConnectHost();
-
     void myHostAddress();
-    quint32 myHost;
-    quint32 locIP;
+    quint32 locIP;                      //Собственный адрес клиента
     QHostAddress newLocIP;
     QString strError;
     MyTcpSocket * m_pTcpSocket;         //Начатльный указатель для создания 255 сокетов
