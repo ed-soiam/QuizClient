@@ -8,8 +8,9 @@ QSHManagerInfo::QSHManagerInfo(QObject *,const QString & path) :
     QThreadObject(),
     socket(QThreadSocket::SOCKET_TCP)
 {
-    socket.setTrasportParser(new QJSONParser());
-    socket.setServerName(path);    //соекету передан адрес/имя подключения
+    socket.setTrasportParser(new QJSONParser()); //Инициализируется объектом QJSONParser прямо тут
+    socket.setServerName(path);                  //соекету передан адрес/имя подключения
+
 /*    QJSONTask task;                //Создана задача
     task.setTimeout(22000);
     task.setAnswerParser(QJSONTask::JSON_ANSWER_GET_GSM_PARAMS);
@@ -21,7 +22,6 @@ QSHManagerInfo::QSHManagerInfo(QObject *,const QString & path) :
     //connect(&socket,SIGNAL(errorOccured(QString)),this,SLOT(logError(QString)));
 }
 
-
 QSHManagerInfo::~QSHManagerInfo()
 {
 
@@ -32,28 +32,27 @@ void QSHManagerInfo::process()
     connect(&socket,SIGNAL(receivedMessage(QByteArray)),this,SLOT(parseMessage(QByteArray)));
     connect(this,SIGNAL(writeToSocket(QByteArray)),&socket,SLOT(writeToSocket(QByteArray)));
     connect(&socket,SIGNAL(signalConnected(bool)),this,SIGNAL(setConnected(bool)),Qt::UniqueConnection);//Соединены два сигнала
-    connect(this,SIGNAL(finished_socket_entr()),&socket,SLOT(disconnectSocket()));
+//    connect(this,SIGNAL(finished_socket_entr()),&socket,SLOT(disconnectSocket()));
 
     while (canContinue())
     {
         while (!socket.isConnected() && canContinue()) // socket.isConnected() возвращает bool _connected
             if (!socket.connectToServer())
             {
-                QThread::sleep(2);
-                qDebug()<< "Не подключен 45 строка";
+                QThread::sleep(2);   //Заставляет текущий поток спать в секундах.
             }
 
         execTasks();
         QThread::msleep(100);
         QCoreApplication::processEvents(QEventLoop::AllEvents, 1);
     }
-    emit finished();
+    emit finished(); //Остановка потока родителя
 }
-
 
 void QSHManagerInfo::execTasks() //Внутренняя функция
 {
-    QMutexLocker locker(&local_mutex);
+    QMutexLocker locker(&local_mutex);                                  //Блокировка и разблокировка QMutex в сложных функциях и операторах или в коде обработки исключений подвержена ошибкам и трудно отлаживается. QMutexLocker может использоваться в таких ситуациях, чтобы гарантировать, что состояние мьютекса всегда четко определено.
+    //Например, эта сложная функция блокирует QMutex при вводе функции и разблокирует мьютекс во всех точках выхода:
     if (current_task.answerParser() != QJSONTask::JSON_ANSWER_NONE)
     {
         if (!current_task.isTimeout())
@@ -84,7 +83,7 @@ void QSHManagerInfo::execTasks() //Внутренняя функция
 
 void QSHManagerInfo::sendEvent(const QString & event,const QString & additional_json_fields)
 {
-    QMutexLocker locker(&local_mutex);
+    QMutexLocker locker(&local_mutex); //Например, эта сложная функция блокирует QMutex при вводе функции и разблокирует мьютекс во всех точках выхода:
     QJSONTask task;
     task.setAnswerParser(QJSONTask::JSON_ANSWER_NONE);
     task.setInfinity(false);
@@ -219,103 +218,11 @@ void QSHManagerInfo::parseJSONAnswer(const QVariantMap & answer)  //Расшиф
             }
         }
     break;
-
-
-
-/*
-    case QJSONTask::JSON_ANSWER_GET_MANAGER_INFO:
-        if (answer["status"].isValid()) //Возвращает true если тип этого хранилища найден
-        {
-            QString _str="IN(answer):";
-            //qDebug()<<answer;
-
-            if(answer["class"].isValid())
-            {                
-                _str.append("\"class\":\"");
-                _str.append(answer["class"].toString());
-                _str.append("\",");
-            }            
-            if(answer["command"].isValid())
-            {
-                _str.append("\"command\":\"");
-                _str.append(answer["command"].toString());
-                _str.append("\",");
-            }
-            if(answer["label"].isValid())
-            {
-                _str.append("\"label\":");
-                _str.append(answer["label"].toString());
-                _str.append(",");
-            }
-            if(answer["index"].isValid())
-            {
-                _str.append("\"index\":");
-                _str.append(answer["index"].toString());
-                _str.append(",");
-            }
-            if(answer["status"].isValid())
-            {
-                _str.append("\"status\":\"");
-                _str.append(answer["status"].toString());
-                _str.append("\"");
-            }
-            if(answer["savedIds"].isValid())
-            {
-                //QString _str;
-                _str.append("\"savedIds\":[{");
-                QList<QVariant> status = answer["savedIds"].toList();
-
-                QList<QVariant> myList;
-                for(int i=0;i<status.length(); i++)
-                {
-                    QMap<QString, QVariant> myMap;
-                    myMap=status[i].toMap();
-
-                    if(myMap["id"].isValid())
-                    {
-                        _str.append("id:");
-                        _str.append(myMap["id"].toString());
-                        _str.append(",");
-                    }
-                    if(myMap["route"].isValid())
-                    {
-                        _str.append("route:");
-                        _str.append(myMap["route"].toString());
-                        _str.append(",");
-                    }
-                    if(myMap["reserved"].isValid())
-                    {
-                        _str.append("reserved:");
-                        _str.append(myMap["reserved"].toString());
-                        _str.append(",");
-                    }
-                    if(myMap["seved"].isValid())
-                    {
-                        _str.append("seved:");
-                        _str.append(myMap["seved"].toString());
-                        _str.append(",");
-                    }
-                    if(myMap["class"].isValid())
-                    {
-                        _str.append("class:");
-                        _str.append(myMap["class"].toString());
-                        _str.append("}]}");
-                    }
-
-                    //qDebug()<<_str;
-                }
-                //qDebug()<<_str;
-                //qDebug()<<_status;
-                //emit addrTextEdit(_str);
-            }
-            emit addrTextEdit(_str);
-        }
-        break;*/
     }
 }
-
+/*
 void QSHManagerInfo::finished_socket_1() //Ретранслирует закрытие соединения на верх, в виджет
 {
     emit finished_socket_entr();
 }
-
+*/

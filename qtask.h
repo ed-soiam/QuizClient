@@ -9,7 +9,7 @@ class QTask : public QObject
     Q_OBJECT
 public:
     explicit QTask(QObject *parent = 0);   //Конструктор без аргументов
-    QTask(const QTask & obj);               //Конструктор с аргументом QTask & obj
+    QTask(const QTask & obj);               //Конструктор копирования
     QTask & operator =(const QTask & obj);  //Оператор присваивания
     virtual void setTaskData(const QByteArray & data) {_data = data;}  //Инициализация данных для передачи
     QByteArray taskData() const {return _data;}                         //Извлечение данных из класса/вывод

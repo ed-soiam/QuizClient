@@ -28,7 +28,6 @@ MyClient::MyClient()//: QObject()
 
     myHostAddress();                    //Определение своего IP
     myConnectHost();                    //Попытка подключения к всем возможным адресам сети
-
 }
 /*
 MyClient::~MyClient()
@@ -64,7 +63,7 @@ void MyClient::myHostAddress()
 void MyClient:: myConnectHost()
 {
     for(int i=0; i < socketList.length();i++ )
-           connect (this, SIGNAL(waitConnectSocket()),socketList.at(i),
+           connect (this, SIGNAL(waitConnectSocket()),socketList.at(i), //Подключение
                     SLOT(slotWaitConnect()), Qt::QueuedConnection);
 
     for(int i=1; (i<socketList.length()); i++)       //Подключение к 255 сокетам
@@ -73,7 +72,7 @@ void MyClient:: myConnectHost()
         socketList.at(i)->setPeerAddressMy(newLocIP, nPort);
     }
 
-       emit waitConnectSocket(); //Сигнал на подключение
+       emit waitConnectSocket(); //Сигнал на подключение сразу для всех сокетов
 }
 
 //****************************************************************************

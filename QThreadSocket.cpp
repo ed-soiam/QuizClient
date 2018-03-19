@@ -235,12 +235,12 @@ void QThreadSocket::disconnectSocket()
 }
 
 
-void QThreadSocket::setTrasportParser(QTransportParser * parser) //Нужно пояснение
+void QThreadSocket::setTrasportParser(QTransportParser * parser) //Задает парсер
 {
-    this -> parser = QSharedPointer<QTransportParser>(parser);
+    this -> parser = QSharedPointer<QTransportParser>(parser); //Задает как умную переменную
     if (this -> parser)
     {
-        parser -> moveToThread(thread); //Типа, поток перемещается в нуть обьекта
+        parser -> moveToThread(thread); //Типа, перемечает обработку событий в отдельный поток
         //this -> parser -> setParent(this);
     }
 }

@@ -3,16 +3,14 @@
 
 #include <QObject>
 #include <QThread>
-//#include "LogItem.h"
 
-class QThreadObject : public QObject   //Пока непонятно, для чего нежен этот класс
+class QThreadObject : public QObject
 {
-    Q_OBJECT
+    Q_OBJECT          //Обязательный макрос для сигналов и слотов
 protected:            //Защищенный
     bool f_doStop;    //остановить
     bool f_stopped;   //остановлен
-    QThread * thread;
-    //LogBuffer * log;
+    QThread * thread;    
     bool canContinue() const{return !f_doStop;} //Для вывода f_doStop
 public:
     typedef enum {
@@ -21,9 +19,9 @@ public:
     explicit QThreadObject();     //Конструктор
     virtual ~QThreadObject();
     void start();                   //функция запуск
-    //inline void setLog(LogBuffer * log){this -> log = log;}
+
 signals:
-    void finished();     //При завершении
+    void finished();     //Завершение
 public slots:
     virtual void process() = 0;
 private slots:

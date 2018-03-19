@@ -16,8 +16,7 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
     buttonUpdate = new QToolButton();//("Обновить");
     buttonUpdate->setText("Обновить");
     buttonRegister=new QToolButton();//("Регистрация");
-    buttonRegister->setText("Регистрация");    
-    //myTextEdit = new QTextEdit;
+    buttonRegister->setText("Регистрация");
     comBoxIP = new QComboBox;
     comBoxIP->setMinimumContentsLength(13);
     labelIP=new QLabel("Адрес");
@@ -29,12 +28,9 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
 
 
     setLayout(v_BoxLayout);
- //   v_BoxLayout->addLayout(h_BoxLayout);
     v_BoxLayout->addWidget(frameButton);
     frameButton->setFrameShape(QFrame::Panel);
     frameButton->setLayout(h_BoxLayout);
-
-
     h_BoxLayout->addWidget(labelIP);
     h_BoxLayout->addWidget(comBoxIP);
     h_BoxLayout->addWidget(buttonConnect);
@@ -62,6 +58,7 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
     //h_BoxLayout->addWidget(labelImage);
 
       connect (buttonConnect , SIGNAL(clicked()),this, SLOT(slotButtonConnect()));
+      connect(buttonConnect,SIGNAL(clicked(bool)),this,SLOT(slotButtonRegister())); //Подключение и регистррация по одному нажатию на кнопку подключения
       connect (buttonUpdate , SIGNAL(clicked()),this, SLOT(slotButtonUpdate()));
       connect (buttonRegister , SIGNAL(clicked()),this, SLOT(slotButtonRegister()));
 
@@ -108,7 +105,8 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
           {
               buttonConnect->setText("Подключить");
               connectSocket=false;
-              //myTextEdit->append("Поток инрефейса остановлен");
+              regStatus(false);
+              buttonDeleteGame();
           }
       }
       else if (managerInfo == Q_NULLPTR)
@@ -117,26 +115,33 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
           managerInfo->start();
           connect(managerInfo,SIGNAL(setConnected(bool)),this,SLOT(slotSetConnectSocket(bool)),Qt::UniqueConnection);//Сигнал о подключении сокета, Qt::Unique коннектить один раз
           connect(managerInfo,SIGNAL(setVarMenu(QStringList)),this,SLOT(slotChoiceMenu(QStringList)));//Подключение сигнала с вариантом меню
-          connect(managerInfo,SIGNAL(registerSuccessfully(bool)),this,SLOT(slotRegSuccessfully(bool)));
+          connect(managerInfo,SIGNAL(registerSuccessfully(bool)),this,SLOT(slotRegStatus(bool)));
       }
   }
 
-  void QMyWidget::slotRegSuccessfully(bool regS) //Благополучная регистрация
-  {
-      bool registerQuiz=regS;
+void QMyWidget::slotRegStatus(bool regS) //Благополучная регистрация
+{
+     bool registerQuiz=regS;
+     regStatus(registerQuiz);
 
-      if(registerQuiz==true)
-      {
-          QPixmap pixmapWell(strNameImage[1]);
-          labelImage->setPixmap(pixmapWell.scaledToHeight(17));
-      }
-      else
-      {
-          QPixmap pixmapBed(strNameImage[0]);
-          labelImage->setPixmap(pixmapBed.scaledToHeight(17));
-      }
+}
 
-  }
+void QMyWidget::regStatus(bool statusReg)
+{
+    if(statusReg==true)
+    {
+        QPixmap pixmapWell(strNameImage[1]);
+        labelImage->setPixmap(pixmapWell.scaledToHeight(17));
+    }
+    else
+    {
+        QPixmap pixmapBed(strNameImage[0]);
+        labelImage->setPixmap(pixmapBed.scaledToHeight(17));
+    }
+
+}
+
+
   void QMyWidget::slotButtonUpdate() //Обновление списка подключений в comboBox
   {    
        comBoxIP->clear();
@@ -159,22 +164,30 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
             buttonConnect->setText("Отключить");
   }
 
+  void QMyWidget::buttonDeleteGame()
+  {
+      if(!listPushButton.isEmpty())
+      {
+          for(int i=0; i<listPushButton.length();i++){
+
+              if(listPushButton[i]!=Q_NULLPTR)
+              {
+                  delete listPushButton[i];
+                  listPushButton[i]=Q_NULLPTR;  //Выделенная память не больше не занята
+              }
+          }
+          listPushButton.clear();
+      }
+  }
+
   void QMyWidget::slotChoiceMenu(QStringList numberMenu) //Слот выбора варианта меню.
   {
       QStringList listStringButton;
       listStringButton=numberMenu;      
 
-      if(listStringButton.isEmpty()) //Удаление меню предыдущего варианта игры
+      if(listStringButton.isEmpty()) //Удаление меню при приходте пустого варианта меню
       {
-          if (!listPushButton.isEmpty())
-          {
-              for(int i=0; i<listPushButton.length();i++){
-                  delete listPushButton[i];
-                  listPushButton[i]=Q_NULLPTR;  //Выделенная память не больше не занята
-              }
-
-              listPushButton.clear();
-          }
+          buttonDeleteGame();
       }
 
       if(listPushButton.isEmpty())
@@ -214,7 +227,7 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
 
   void QMyWidget::slotButtonGame() //Слот обрабатывает нажатия на все 5 кнопок обоих вариантов меню
   {
-      QPushButton *buttonGame=dynamic_cast<QPushButton*>(sender());
+      QPushButton *buttonGame=dynamic_cast<QPushButton*>(sender()); //QObject/ Возвращает указатель на объект, который отправил сигнал, если он вызван в слот, активированный сигналом; в противном случае он возвращает 0
       for(int i=0;i<listPushButton.length();i++)
       {
           if(buttonGame==listPushButton[i])
@@ -251,8 +264,12 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
 
   void QMyWidget::slotButtonRegister() //Слот кнопки регистрации
   {
-      QString commandRegister=QString("{\"class\":\"netro\", \"command\":\"register\", \"label\":1, \"key\":\"%1\"}").arg(settings_register_key());
-      managerInfo->sendCommand(commandRegister,QJSONTask::JSON_ANSWER_STANDARD_REG);
+     if(managerInfo!=Q_NULLPTR)
+      {
+          QString commandRegister=QString("{\"class\":\"netro\", \"command\":\"register\", \"label\":1, \"key\":\"%1\"}").arg(settings_register_key());
+          managerInfo->sendCommand(commandRegister,QJSONTask::JSON_ANSWER_STANDARD_REG);
+      }
+
   }
 
 

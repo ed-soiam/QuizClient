@@ -26,10 +26,10 @@ public:
 
     explicit QThreadSocket(SOCKET_TYPE sock_type = SOCKET_TCP);
     virtual ~QThreadSocket();
-    bool connectToServer( const QString& _serverName = QString(), int port = 1234);
-    QString serverName() const{ return _name;}
-    void setServerName(const QString &value){_name = value;}
-    QString lastError() const{return error;}
+    bool connectToServer( const QString& _serverName = QString(), int port = 1234); //Подключение к серверу
+    QString serverName() const{ return _name;}                                      //Возвращает имя сервера/адрес
+    void setServerName(const QString &value){_name = value;}                        //Задает имя сервера/адрес
+    QString lastError() const{return error;}                                        //Возвращает последнюю ошибку
     /*
      * Настройка транспортного парсера входящих данных (парсер - часть программы, преобразующей входные данные (как правило, текст) в структурированный формат
      * Объект класса становится владельцем парсера(т.е. сам его удаляет при разрушении и смене на новый)
@@ -57,11 +57,11 @@ public slots:
     void disconnectSocket();                                           //отключается от сервера
 private:
     QLocalSocket * unix_socket;  //В Windows это именованный канал, а в Unix это локальный доменный сокет
-    QTcpSocket * tcp_socket;
-    QIODevice * socket;//ссылка на активный сокет
+    QTcpSocket * tcp_socket;     // Tcp - транспортный протокол, ориентированный на соединение для непрерывной передачи данных.
+    QIODevice * socket;          //ссылка на активный сокет/ QIODevice является базовым классом интерфейса всех устройств ввода / вывода в Qt.
     QString error;
     QThread* thread;
-    QSharedPointer <QTransportParser> parser;
+    QSharedPointer <QTransportParser> parser; //Умная переменная, которая сама освобождает память после выхода и области видимости
     QString _name;//имя сокета(адрес)
     int _port;    //1234
     SOCKET_TYPE _sock_type; //Тип сокета из enum

@@ -49,6 +49,8 @@ private:
 //    QScopedPointer<QLabel> labelImage;
 //    QPointer<QLabel> labelImage;
     QList<QString> strNameImage;
+    void regStatus(bool statusReg);
+    void buttonDeleteGame(); //Кнопки нужно удалять из слота и из самого виджета, поэтому пришлось добавить отдельную функцию
 
 
 public slots:
@@ -59,7 +61,7 @@ public slots:
     void slotButtonGame();     //Отправка команд
     void slotChoiceMenu(QStringList numberMenu); //Выбора варианта меню.
     void slotButtonRegister(); //Кнопка регистрации
-    void slotRegSuccessfully(bool regS); //Наличие регистрации
+    void slotRegStatus(bool regS); //Наличие регистрации
 
 signals:
     void signalChoiceMenu(int numberMenu);
