@@ -3,31 +3,29 @@
 
 #include <QObject>
 #include <QThread>
-//#include "LogItem.h"
 
 class QThreadObject : public QObject
 {
-    Q_OBJECT
-protected:
-    bool f_doStop;
-    bool f_stopped;
+    Q_OBJECT          //Обязательный макрос для сигналов и слотов
+protected:            //Защищенный
+    bool f_doStop;    //остановить
+    bool f_stopped;   //остановлен
     QThread * thread;
-    LogBuffer * log;
-    bool canContinue() const{return !f_doStop;}
+    bool canContinue() const{return !f_doStop;} //Для вывода f_doStop
 public:
     typedef enum {
-        THROW_ERROR_NO_CONNECT
+        THROW_ERROR_NO_CONNECT    //бросок
     } THROW_ERROR;
-    explicit QThreadObject();
+    explicit QThreadObject();     //Конструктор
     virtual ~QThreadObject();
-    void start();
-    inline void setLog(LogBuffer * log){this -> log = log;}
+    void start();                   //функция запуск
+
 signals:
-    void finished();
+    void finished();     //Завершение
 public slots:
     virtual void process() = 0;
 private slots:
-    void whenFinished();
+    void whenFinished();  //При завершении
 };
 
 #endif // QTHREADOBJECT_H

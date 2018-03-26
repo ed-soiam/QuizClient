@@ -1,5 +1,4 @@
 #include "myclient.h"
-#include "mainwindow.h"
 #include "qmywidget.h"
 
 
@@ -9,9 +8,6 @@ MyClient::MyClient()//: QObject()
     for (int i=0; i<256; i++){                     // Создание указателей для 255 отдельных подключений
         m_pTcpSocket = new MyTcpSocket;            //Создание указателя для отдельного соединения
         socketList.append(m_pTcpSocket);}          //Сохранение указателей в контейнер
-
-    for(int i=0; i < socketList.length();i++ )
-           connect (socketList.at(i), SIGNAL(connected()),this, SLOT(slotConnected())); //Соединение установлено
 
     for(int i=0; i < socketList.length();i++ )
            connect (socketList.at(i), SIGNAL(readyRead()),this, SLOT(slotReadyRead())); //Соединение готово к чтению
@@ -99,35 +95,6 @@ void MyClient::slotAddrClosedPort(QHostAddress addrClosedPort) //Учет зак
 void MyClient::updateConnectHost()
 {
     emit waitConnectSocket(); //Сигнал для подключения всех созданных сокетов
-}
-
-//***************************************************************************
-//Слот подключения
-void MyClient::slotConnected()              //Произведено соединение
-{
-
-/*
-    for(int i=0; i<socketList.length(); i++)
-    {
-        if(sender()==dynamic_cast<QObject*>(socketList.at(i)))  //Определение указателя объекта выславшего сигнал
-        {
-            openSocketList.append(socketList.at(i)->peerAddress()); //Сохраняем доступные подключения
-            qDebug()<<"Сохранен адрес:"<< myTimer.elapsed();
-
-        }
-    }
-
-    //allHostAddress.append(QHostAddress(locIP));
-    //emit signalConnected(true);
-    //m_ptxtInfo->append("Received the connected() signal");
-
-    //qDebug() << m_pTcpSocket->localAddress();
-    //qDebug() << newLocIP;
-    //qDebug() << QHostAddress(locIP+i);
-
-    //qDebug() << "Адрес подключения:" << newLocIPReturn();
-   // m_pTcpSocket->disconnectFromHost();
-*/
 }
 
 //********************************************************************************

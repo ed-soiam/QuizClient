@@ -49,7 +49,7 @@ signals:
 private slots:
     void slotReadyRead   (                            ); //Готовность предоставить данные для чтения
     void slotError       (QAbstractSocket::SocketError); //Возникла ошибка
-    void slotConnected   (                            ); //Прозиведено соединение
+ //   void slotConnected   (                            ); //Прозиведено соединение
     void slotAddrOpenPort(QHostAddress addrOpenPort);    //Прием доступного адреса
     void slotAddrClosedPort(QHostAddress addrClosedPort);//Прием недоступного адреса
     //void updateSocket();

@@ -2,17 +2,17 @@
 #define QMYWIDGET_H
 
 #include <QWidget>
-#include "mainwindow.h"
-#include <QMainWindow>
+//#include "mainwindow.h"
+//#include <QMainWindow>
 #include <QApplication>
 #include "MyClient.h"
 #include <QTcpSocket>
 #include <QtWidgets>
 #include "myclient.h"
-#include "QThreadSocket.h"
-#include "qtask.h"
-#include "qjsontask.h"
-#include "qshmanagerinfo.h"
+#include "myThreadSocket/QThreadSocket.h"
+#include "qtask/qtask.h"
+#include "qtask/qjsontask.h"
+#include "myThreadSocket/qshmanagerinfo.h"
 #include <QSettings>
 #include <QSizePolicy>
 #include <QPushButton>
@@ -35,8 +35,7 @@ private:
     QToolButton* buttonConnect;
     QToolButton* buttonUpdate;
     QToolButton* buttonRegister;
-    QList<QPushButton*> listPushButton; //Список кнопок
-    //QTextEdit* myTextEdit;
+    QList<QPushButton*> listPushButton; //Список кнопок    
     QComboBox* comBoxIP;
     QLabel* labelIP;
     QSHManagerInfo* managerInfo=0;//Подключение

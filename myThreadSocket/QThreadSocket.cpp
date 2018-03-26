@@ -1,20 +1,21 @@
-#include "QThreadSocket.h"
+#include "myThreadSocket/QThreadSocket.h"
 #include <QApplication>
 #include <QHostAddress>
 
 QThreadSocket::QThreadSocket(SOCKET_TYPE sock_type) : QObject()
 {
-    _sock_type = sock_type;
-    unix_socket = 0;
+    _sock_type = sock_type; //В Windows это именованный канал, а в Unix это локальный доменный сокет. Выбран один из двух типов сокета
+    unix_socket = 0;        //
     tcp_socket = 0;
-    socket = 0;
-    _connected = false;
-    thread = new QThread();
-    moveToThread(thread);
-    thread -> start();
-    connect(this,SIGNAL(signalConnected(bool)),this,SLOT(setConnected(bool)));
+    socket = 0;             //ссылка на активный сокет
+    _connected = false;     //Пока не подключен
+    thread = new QThread(); //Создает новый поток. Родитель берет на себя ответственность за QThread.
+    moveToThread(thread);   //Перемещает обработку событий в поток thread
+    thread -> start();      //Начинает выполнение потока, вызывая run ().
+    connect(this,SIGNAL(signalConnected(bool)),this,SLOT(setConnected(bool))); //Слот устанавливает значение bool _connected;
+    //void signalConnected(bool);//ивент подключенности сокета
+    //void setConnected(bool value){_connected = value;}
 }
-
 
 QThreadSocket::~QThreadSocket()
 {
@@ -23,7 +24,6 @@ QThreadSocket::~QThreadSocket()
     thread -> deleteLater();
     emit finished_socket();
 }
-
 
 /**
  * @brief QThreadUnixSocket::connectTo
@@ -35,15 +35,15 @@ QThreadSocket::~QThreadSocket()
  */
 bool QThreadSocket::connectToServer(const QString &_serverName, int port)
 {
-
     if (socket && socket -> isOpen())
-        emit finished_socket();//по идее сигнал дойде когда-нибудь, ак что можно создавать новый объект
+        emit finished_socket();//по идее сигнал дойдет когда-нибудь,
+                               // так что можно создавать новый объект
 
-    if (!_serverName.isEmpty())
+    if (!_serverName.isEmpty()) //Имя сервера не пустое
         _name = _serverName;
     else
         if (_name.isEmpty())
-            return false;
+            return false;   //Если имя пустое, возвращает false
 
     _port = port;
 
@@ -55,31 +55,38 @@ bool QThreadSocket::connectToServer(const QString &_serverName, int port)
         unix_socket -> connectToServer(_name,QIODevice::ReadWrite);
         if (!unix_socket -> waitForConnected(2000))
         {
-            unix_socket -> close();
+            unix_socket -> close(); //Закрывает устройство
             emit errorOccured(QThreadSocket::connectError);
-            emit signalConnected(false);
+            emit signalConnected(false);   //установка _connected=false (соединение не установлено
         }
         break;
     case SOCKET_TCP:
         tcp_socket = new QTcpSocket();
         socket = tcp_socket;
+
         tcp_socket -> connectToHost(QHostAddress(_name),_port,QIODevice::ReadWrite);
-        if (!tcp_socket -> waitForConnected(2000))
+
+        if (!tcp_socket -> waitForConnected(2000)) //Ожидает подключеня в течении 2000 мс
         {
-            tcp_socket -> close();
+            tcp_socket -> close(); //Закрывает устройство
             emit errorOccured(QThreadSocket::connectError);
-            emit signalConnected(false);
+            emit signalConnected(false);   //установка _connected=false (соединение не установлено)
         }
         break;
     }
+
     connect(this, SIGNAL(finished_socket()), socket, SLOT(deleteLater()));
+    //connect(this, SIGNAL(finished_socket()), socket, SLOT(deleteLater()));
 
     bool result = socket -> isOpen();
+
     if (result)
     {
         emit signalConnected(true);
-        socket -> moveToThread(thread); // он переносим его в потом QThreadObject
-        connect(socket, SIGNAL(readyRead()), this, SLOT(readFromSocket()));
+        socket -> moveToThread(thread); // переносим его в поток QThreadObject
+
+        connect(socket, SIGNAL(readyRead()), this, SLOT(readFromSocket()));//Подключение сигнала о готовности чтения
+
         switch (_sock_type)
         {
         case SOCKET_UNIX:
@@ -92,43 +99,49 @@ bool QThreadSocket::connectToServer(const QString &_serverName, int port)
     }
     else
     {
-        emit finished_socket();//по идее сигнал дойде когда-нибудь, ак что можно создавать новый объект
+        emit finished_socket();//по идее сигнал дойде когда-нибудь, так что можно создавать новый объект
         socket = 0;
     }
+
     return result;
 }
-
 
 /**
  * @brief QThreadUnixSocket::readFromSocket
  * Читает данные из сокета по сигналу о наличии
  * и эмитит сигнал receivedData
  */
-void QThreadSocket::readFromSocket()
+void QThreadSocket::readFromSocket()  //слот для сигнала receivedData
+                                       //(получены raw-данные (сырые, необработанные),
+                                        //если не задан транспортный парсер
+                                        //Ловит сигнал readuRead (IODevice). Этот сигнал излучается один раз каждый раз, когда новые данные доступны для чтения с текущего канала чтения устройства.
+
 {
-    if (!socket)
+    if (!socket)       //Если сокет не =0, т.е. не закрыт. QIODevice * socket; базовый класс всех сокетов
         return;
-    if (!parser.isNull())
+
+    if (!parser.isNull())   //Возвращает true, если обьект содержит ссылку на нулевой указатель
     {
-        QByteArray message = parser -> parse(socket -> readAll());
+        QByteArray message = parser -> parse(socket -> readAll()); //readAll() - cчитывает все оставшиеся данные с устройства и возвращает его как массив байтов.
+        //parser -> parse выделяет одно сообщение из потока. Их может быть больше, поэтому нужно их разделять.
         while(!message.isEmpty())
         {
-            emit receivedMessage(message);
+            emit receivedMessage(message);     //Полученное сообщение
             message = parser -> parse(QByteArray());
         }
     }
     else
-        emit receivedData(socket -> readAll());
+        emit receivedData(socket -> readAll()); //Полученные данные. Reads all remaining data from the device, and returns it as a byte array
 }
 
 
-void QThreadSocket::unixErrorHandler(QLocalSocket::LocalSocketError socketError)
+void QThreadSocket::unixErrorHandler(QLocalSocket::LocalSocketError socketError) //Обработчик ошибок unix
 {
     switch (socketError)
     {
     case QLocalSocket::ServerNotFoundError:
-        error = tr("The host was not found. Please check the "
-                                    "host name and port settings.");
+        error = tr("The host was not found. Please check the "          //Хост не найдет. Пожалуйста
+                                    "host name and port settings.");    //имя хоста и настройки порта.
         break;
     case QLocalSocket::ConnectionRefusedError:
         error = tr("The connection was refused by the peer. "
@@ -149,7 +162,7 @@ void QThreadSocket::unixErrorHandler(QLocalSocket::LocalSocketError socketError)
 }
 
 
-void QThreadSocket::tcpErrorHandler(QAbstractSocket::SocketError socketError)
+void QThreadSocket::tcpErrorHandler(QAbstractSocket::SocketError socketError) //Обработчик ошибок tcp
 {
     switch (socketError)
     {
@@ -184,11 +197,16 @@ void QThreadSocket::tcpErrorHandler(QAbstractSocket::SocketError socketError)
  * Отправляет в сокет ( если подключен ) данные взятые из @param data
  * @param data
  */
-void QThreadSocket::writeToSocket(QByteArray data)
+void QThreadSocket::writeToSocket(QByteArray data)  //Сигнал из QSHmanagerInfo для записи
 {
     if (!socket)
         return;
-    QByteArray send_data = parser.isNull() ? data : parser -> create(data) ;
+    QByteArray send_data = parser.isNull() ? data : parser -> create(data);
+    //Условие: если parser.isNull()==true, тогда возвращает data, в противном случае parser -> create(data)
+
+    if(parser.isNull())
+        qDebug()<< "Пустой";
+
     if (socket -> write(send_data) == -1)
     {
         emit errorOccured("Error occured while sending data");
@@ -196,8 +214,11 @@ void QThreadSocket::writeToSocket(QByteArray data)
         disconnectSocket();
         return;
     }
+
     if (!socket -> waitForBytesWritten(30000))
         emit errorOccured(QThreadSocket::wdTimeoutError);
+
+
 }
 
 
@@ -214,12 +235,20 @@ void QThreadSocket::disconnectSocket()
 }
 
 
-void QThreadSocket::setTrasportParser(QTransportParser * parser)
+void QThreadSocket::setTrasportParser(QTransportParser * parser) //Задает парсер
 {
-    this -> parser = QSharedPointer<QTransportParser>(parser);
-    if (this -> parser)
+   this -> parser = QSharedPointer<QTransportParser>(parser); //Задает как умную переменную
+   //this -> parser - это глобальная переменная этого класса.Обратиться к ней можно через this
+   //parser - локальная переменная этой функции с тем же именем что и глобальная.
+/*     if (this -> parser)
     {
-        parser -> moveToThread(thread);
-        this -> parser -> setParent(this);
-    }
+        parser -> moveToThread(thread); //Типа, перемечает обработку событий в отдельный поток
+        //this -> parser -> setParent(this);
+    }*/
 }
+/*
+void QThreadSocket::transferFinishedSocket()
+{
+    emit disconnectSocket(); //нужно еще подключить
+}
+*/

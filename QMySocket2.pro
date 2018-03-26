@@ -27,33 +27,36 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
     myclient.cpp \
     qmywidget.cpp \
+    mytcpsocket.cpp \
     TransportParser/QJSONParser.cpp \
     TransportParser/QSimpleCommandParser.cpp \
     TransportParser/QTransportParser.cpp \
     TransportParser/QX25Parser.cpp \
-    qjsontask.cpp \
-    qshmanagerinfo.cpp \
-    qtask.cpp \
-    qthreadobject.cpp \
-    QThreadSocket.cpp \
-    mytcpsocket.cpp
+    qtask/qjsontask.cpp \
+    qtask/qtask.cpp \
+    myThreadSocket/qshmanagerinfo.cpp \
+    myThreadSocket/qthreadobject.cpp \
+    myThreadSocket/QThreadSocket.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += \
     myclient.h \
     qmywidget.h \
+    mytcpsocket.h \
     TransportParser/QJSONParser.h \
     TransportParser/QSimpleCommandParser.h \
     TransportParser/QTransportParser.h \
     TransportParser/QX25Parser.h \
-    qjsontask.h \
-    qshmanagerinfo.h \
-    qtask.h \
-    qthreadobject.h \
-    QThreadSocket.h \
-    mytcpsocket.h
+    qtask/qjsontask.h \
+    qtask/qtask.h \
+    myThreadSocket/qshmanagerinfo.h \
+    myThreadSocket/qthreadobject.h \
+    myThreadSocket/QThreadSocket.h
+
+
+
+
 
 #FORMS    += mainwindow.ui
 
