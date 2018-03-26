@@ -1,8 +1,9 @@
 #include "qtask.h"
+#include <QDebug>
 
 QTask::QTask(QObject *parent) : QObject(parent)
 {
-    _task_timer.start();
+    _task_timer.start(); //Таймер запускается про создании задачи
     _ok_context = 0;
     _error_context = 0;
     _funcPostOk = nullptr;      //Сообщение Ок
@@ -36,10 +37,11 @@ QTask & QTask::operator =(const QTask & obj)
 
 bool QTask::isReady() const   //Готов
 {
-    if (_pre_check && *_pre_check == false)
+    if (_pre_check && *_pre_check == false)  //проверка условия, если указатель активен
         return false;
-    if (_last_exec + _period_ms <= _task_timer.elapsed() || !_last_exec) // _last_exec время последнего запуска
+    if (_last_exec + _period_ms <= _task_timer.elapsed() || !_last_exec) // !_last_exec время последнего запуска не равно нулю
         return true;
+    //Время последнего запуска + время между запусками (0) <= время с момента создания задачи или время последнего запуска
     return false;
 }
 
@@ -63,7 +65,7 @@ void QTask::setOk()
 }
 
 
-void QTask::setError(int error)
+void QTask::setError(int error) //Количество повторов при возникновении ошибки
 {
     if (_retries > 0)
         _retries--;

@@ -61,11 +61,11 @@ private:
     QIODevice * socket;          //ссылка на активный сокет/ QIODevice является базовым классом интерфейса всех устройств ввода / вывода в Qt.
     QString error;
     QThread* thread;
-    QSharedPointer <QTransportParser> parser; //Умная переменная, которая сама освобождает память после выхода и области видимости
+    QSharedPointer <QTransportParser> parser; //Умная переменная, которая сама освобождает память после выхода и области видимости. Установленный парсер
     QString _name;//имя сокета(адрес)
     int _port;    //1234
     SOCKET_TYPE _sock_type; //Тип сокета из enum
-    bool _connected;
+    bool _connected;             //Состояние подключения
 
 };
 

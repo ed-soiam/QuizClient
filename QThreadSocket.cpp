@@ -4,7 +4,7 @@
 
 QThreadSocket::QThreadSocket(SOCKET_TYPE sock_type) : QObject()
 {
-    _sock_type = sock_type; //В Windows это именованный канал, а в Unix это локальный доменный сокет
+    _sock_type = sock_type; //В Windows это именованный канал, а в Unix это локальный доменный сокет. Выбран один из двух типов сокета
     unix_socket = 0;        //
     tcp_socket = 0;
     socket = 0;             //ссылка на активный сокет
@@ -35,10 +35,9 @@ QThreadSocket::~QThreadSocket()
  */
 bool QThreadSocket::connectToServer(const QString &_serverName, int port)
 {
-
     if (socket && socket -> isOpen())
         emit finished_socket();//по идее сигнал дойдет когда-нибудь,
-                                // так что можно создавать новый объект
+                               // так что можно создавать новый объект
 
     if (!_serverName.isEmpty()) //Имя сервера не пустое
         _name = _serverName;
@@ -107,7 +106,6 @@ bool QThreadSocket::connectToServer(const QString &_serverName, int port)
     return result;
 }
 
-
 /**
  * @brief QThreadUnixSocket::readFromSocket
  * Читает данные из сокета по сигналу о наличии
@@ -116,15 +114,16 @@ bool QThreadSocket::connectToServer(const QString &_serverName, int port)
 void QThreadSocket::readFromSocket()  //слот для сигнала receivedData
                                        //(получены raw-данные (сырые, необработанные),
                                         //если не задан транспортный парсер
+                                        //Ловит сигнал readuRead (IODevice). Этот сигнал излучается один раз каждый раз, когда новые данные доступны для чтения с текущего канала чтения устройства.
 
 {
-
-
-    if (!socket)       //Если сокет не =0, т.е. не закрыт
+    if (!socket)       //Если сокет не =0, т.е. не закрыт. QIODevice * socket; базовый класс всех сокетов
         return;
-    if (!parser.isNull())   //Возвращает true, если обьект содержит ссылку на нулеовй указатель
+
+    if (!parser.isNull())   //Возвращает true, если обьект содержит ссылку на нулевой указатель
     {
         QByteArray message = parser -> parse(socket -> readAll()); //readAll() - cчитывает все оставшиеся данные с устройства и возвращает его как массив байтов.
+        //parser -> parse выделяет одно сообщение из потока. Их может быть больше, поэтому нужно их разделять.
         while(!message.isEmpty())
         {
             emit receivedMessage(message);     //Полученное сообщение
@@ -132,7 +131,7 @@ void QThreadSocket::readFromSocket()  //слот для сигнала receivedD
         }
     }
     else
-        emit receivedData(socket -> readAll()); //Полученные данные
+        emit receivedData(socket -> readAll()); //Полученные данные. Reads all remaining data from the device, and returns it as a byte array
 }
 
 
@@ -198,11 +197,12 @@ void QThreadSocket::tcpErrorHandler(QAbstractSocket::SocketError socketError) //
  * Отправляет в сокет ( если подключен ) данные взятые из @param data
  * @param data
  */
-void QThreadSocket::writeToSocket(QByteArray data)  //Слот для сигнала.
+void QThreadSocket::writeToSocket(QByteArray data)  //Сигнал из QSHmanagerInfo для записи
 {
     if (!socket)
         return;
-    QByteArray send_data = parser.isNull() ? data : parser -> create(data) ;
+    QByteArray send_data = parser.isNull() ? data : parser -> create(data);
+    //Условие: если parser.isNull()==true, тогда возвращает data, в противном случае parser -> create(data)
 
     if(parser.isNull())
         qDebug()<< "Пустой";
@@ -237,12 +237,14 @@ void QThreadSocket::disconnectSocket()
 
 void QThreadSocket::setTrasportParser(QTransportParser * parser) //Задает парсер
 {
-    this -> parser = QSharedPointer<QTransportParser>(parser); //Задает как умную переменную
-    if (this -> parser)
+   this -> parser = QSharedPointer<QTransportParser>(parser); //Задает как умную переменную
+   //this -> parser - это глобальная переменная этого класса.Обратиться к ней можно через this
+   //parser - локальная переменная этой функции с тем же именем что и глобальная.
+/*     if (this -> parser)
     {
         parser -> moveToThread(thread); //Типа, перемечает обработку событий в отдельный поток
         //this -> parser -> setParent(this);
-    }
+    }*/
 }
 /*
 void QThreadSocket::transferFinishedSocket()

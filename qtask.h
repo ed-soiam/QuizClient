@@ -11,7 +11,7 @@ public:
     explicit QTask(QObject *parent = 0);   //Конструктор без аргументов
     QTask(const QTask & obj);               //Конструктор копирования
     QTask & operator =(const QTask & obj);  //Оператор присваивания
-    virtual void setTaskData(const QByteArray & data) {_data = data;}  //Инициализация данных для передачи
+    virtual void setTaskData(const QByteArray & data) {_data = data;}   //Виртуальная функция, данные для передачи
     QByteArray taskData() const {return _data;}                         //Извлечение данных из класса/вывод
     //условие проверки активности задачи по внешней переменной
     void setConditionPointer(bool * pointer){_pre_check = pointer;}
@@ -30,6 +30,7 @@ public:
 
     bool isTimeout() const {return _task_timer.elapsed() - _last_exec > _timeout_ms ? true :false;}
     /*Назначить функцию пост обработки задачи в случае успешного выполнения и ошибки*/
+
     void setPostOkFunction(void (*func)(void *), void * context = nullptr);
     void setPostErrorFunction(void (*func)(void *,int), void * context = nullptr);
 
@@ -40,19 +41,19 @@ public:
     int retryCount() const{return _retries;}         //повторы
 protected:
 
-    QByteArray _data;       //данные для передачи
+    QByteArray _data;                //данные для передачи
 
-    bool * _pre_check = 0;   //проверка условия, если указатель активен
+    bool * _pre_check = 0;           //проверка условия, если указатель активен. Если задача создана у нее будет реальный указатель. Же
     bool _infinity = false;          //бесконечность исполнения
 
-    qint64 _last_exec = 0;    //время последнего запуска
-    int _period_ms = 0;           //задержка между запусками
-    int _timeout_ms = 1000;//таймаут ожидания ответа от задачи
+    qint64 _last_exec = 0;           //время последнего запуска
+    int _period_ms = 0;              //задержка между запусками
+    int _timeout_ms = 1000;          //таймаут ожидания ответа от задачи
 
     void * _ok_context, * _error_context;
     void (*_funcPostOk)(void *);
-    void (*_funcPostError)(void *,int);
-    int _retries;//количество повторов при ошибке отработки задачи
+    void (*_funcPostError)(void *,int); //Нужно пояснить что это
+    int _retries;                    //количество повторов при ошибке отработки задачи
 private:
     QElapsedTimer _task_timer;
 };

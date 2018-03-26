@@ -4,22 +4,25 @@
 //#include "guiprop.h"
 
 
-QSHManagerInfo::QSHManagerInfo(QObject *,const QString & path) :
-    QThreadObject(),
-    socket(QThreadSocket::SOCKET_TCP)
+QSHManagerInfo::QSHManagerInfo(QObject *,const QString & path) : //Задается адрес для подключения
+    QThreadObject(),                    //Указан родительский клас, а после него уже список инициализации
+    socket(QThreadSocket::SOCKET_TCP) //Для инициализации полей, а также базовых классов используется список инициализации. Список инициализации отделён от заголовка класса двоеточием и имеет вид "имя поля или базового класса (значение)".
+  //Данный способ позволит инициализировать заданными значениями базовые классы, константные поля, а также поля-ссылки.
 {
-    socket.setTrasportParser(new QJSONParser()); //Инициализируется объектом QJSONParser прямо тут
-    socket.setServerName(path);                  //соекету передан адрес/имя подключения
+    socket.setTrasportParser(new QJSONParser()); //Инициализируется объектом QJSONParser прямо тут. В этом месте можно выбрать любой из трех доступных парсеров в папке TransportParser
+    socket.setServerName(path);                  //сокету передан адрес/имя подключения
+}
 
-/*    QJSONTask task;                //Создана задача
-    task.setTimeout(22000);
-    task.setAnswerParser(QJSONTask::JSON_ANSWER_GET_GSM_PARAMS);
-    task.setInfinity(true);
-    task.setPeriod(60000);
-    task.setTaskData(QByteArray("{\"class\":\"gsm\",\"command\":\"getModemParams\",\"gsmStatus\":true,\"signalLevel\":true, \"priority\" : 10}"));
-    _tasks.append(task);        //Задача сохранена в список задач
-*/
-    //connect(&socket,SIGNAL(errorOccured(QString)),this,SLOT(logError(QString)));
+void QSHManagerInfo::sendCommand(const QString & command,QJSONTask::JSON_ANSWER_WAIT parser) //Постановка задачи (команда)
+{
+    QJSONTask task2;                        //Создается задача
+    task2.setTimeout(22000);                //Задается задержка между запусками
+    task2.setInfinity(false);               //Бесконечность исполнения
+    task2.setTaskData(command.toUtf8());    //Устанавливает и преобразует комнаду в ByteArray
+    task2.setAnswerParser(parser);          //Устанваливает парсера
+    if (parser != QJSONTask::JSON_ANSWER_NONE)//_label инициализируется только в случае если нужет ответ на команду.
+        task2.setLabel(++_label);
+    _tasks.append(task2); //Новая задача добавляется в список задач
 }
 
 QSHManagerInfo::~QSHManagerInfo()
@@ -27,35 +30,34 @@ QSHManagerInfo::~QSHManagerInfo()
 
 }
 
-void QSHManagerInfo::process()
+void QSHManagerInfo::process() //Виртуальный слот переопределенный от родителя. вызывается при старте потока сигналом started()
 {
-    connect(&socket,SIGNAL(receivedMessage(QByteArray)),this,SLOT(parseMessage(QByteArray)));
+    connect(&socket,SIGNAL(receivedMessage(QByteArray)),this,SLOT(parseMessage(QByteArray))); //Получено сообщение сокета. Обработано транспортным парсером.
     connect(this,SIGNAL(writeToSocket(QByteArray)),&socket,SLOT(writeToSocket(QByteArray)));
-    connect(&socket,SIGNAL(signalConnected(bool)),this,SIGNAL(setConnected(bool)),Qt::UniqueConnection);//Соединены два сигнала
-//    connect(this,SIGNAL(finished_socket_entr()),&socket,SLOT(disconnectSocket()));
+    connect(&socket,SIGNAL(signalConnected(bool)),this,SIGNAL(setConnected(bool)),Qt::UniqueConnection);//Соединены два сигнала. Сообщение для виджета
 
-    while (canContinue())
+    while (canContinue()) //Возвращает !f_doStop=true при вызове деструктора родителя, т.е. при уничтожении QSHManagerInfo цикл будет остановлен
     {
         while (!socket.isConnected() && canContinue()) // socket.isConnected() возвращает bool _connected
-            if (!socket.connectToServer())
+            if (!socket.connectToServer()) //Если сокет открыт, пропускает. Подключает и возвращает результат. Фактически ожидает подключения.
             {
                 QThread::sleep(2);   //Заставляет текущий поток спать в секундах.
             }
 
-        execTasks();
+        execTasks(); //Выполняет текущую задачу из списка, после чего удаляет ее
         QThread::msleep(100);
-        QCoreApplication::processEvents(QEventLoop::AllEvents, 1);
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 1); //Обработает все ожидающие события для вызывающего потока в соответствии с указанными флажками, пока не будет больше событий для обработки.
     }
-    emit finished(); //Остановка потока родителя
+    emit finished(); //Остановка потока родителя. !f_doStop=false
 }
 
-void QSHManagerInfo::execTasks() //Внутренняя функция
+void QSHManagerInfo::execTasks() //Выполнение поставленной задачи
 {
-    QMutexLocker locker(&local_mutex);                                  //Блокировка и разблокировка QMutex в сложных функциях и операторах или в коде обработки исключений подвержена ошибкам и трудно отлаживается. QMutexLocker может использоваться в таких ситуациях, чтобы гарантировать, что состояние мьютекса всегда четко определено.
+    QMutexLocker locker(&local_mutex);  //Блокировка и разблокировка QMutex в сложных функциях и операторах или в коде обработки исключений подвержена ошибкам и трудно отлаживается. QMutexLocker может использоваться в таких ситуациях, чтобы гарантировать, что состояние мьютекса всегда четко определено.
     //Например, эта сложная функция блокирует QMutex при вводе функции и разблокирует мьютекс во всех точках выхода:
-    if (current_task.answerParser() != QJSONTask::JSON_ANSWER_NONE)
+    if (current_task.answerParser() != QJSONTask::JSON_ANSWER_NONE) //Если текущая задача, требуется ответ.
     {
-        if (!current_task.isTimeout())
+        if (!current_task.isTimeout()) //Учитывает заданный таймаут task2.setTimeout(22000);
             return;
         //TODO: можно как-нибудь отобразить таймаут
         current_task.setError(0);
@@ -67,43 +69,28 @@ void QSHManagerInfo::execTasks() //Внутренняя функция
             current_task.setAnswerParser(QJSONTask::JSON_ANSWER_NONE);
     }
 
-    for (QList<QJSONTask>::iterator it = _tasks.begin(); it != _tasks.end(); ++it)
+    for (QList<QJSONTask>::iterator it = _tasks.begin(); it != _tasks.end(); ++it) //Перебирает все задачи в списке и выполняет
     {
-        if (!it -> isReady())
+        //проверка условия: если указатель *_pre_check не активен выполнение задачи заканчивается
+        //если время последнего запуска 0, задача продолжает выполняться.
+        //если время последнего запуска + время повтора выполнения задачи <= времени с момента создания задачи, то задача продолжает выполняться.
+        //в проекте Quiz повтор нигде не задается
+        if (!it -> isReady()) //
             continue;
-        it -> execute();
-        current_task = *it;
 
-        emit writeToSocket(current_task.taskData());
+        it -> execute(); //Устанавливает время с последнего запуска _last_exec = _task_timer.elapsed();
+                         //в проекте Quiz повтор нигде не используется
+
+        current_task = *it; //Текущая задача взята из списка задач для выполнения. Разыменование итератора
+
+        emit writeToSocket(current_task.taskData()); //собщение с данными в сокет
+
         if (!current_task.infinity())
-            _tasks.erase(it);
+            _tasks.erase(it);        //Стирает из списка задачь, задачу с данным указателем
         break;
     }
 }
 
-void QSHManagerInfo::sendEvent(const QString & event,const QString & additional_json_fields)
-{
-    QMutexLocker locker(&local_mutex); //Например, эта сложная функция блокирует QMutex при вводе функции и разблокирует мьютекс во всех точках выхода:
-    QJSONTask task;
-    task.setAnswerParser(QJSONTask::JSON_ANSWER_NONE);
-    task.setInfinity(false);
-    QString send_data = QString("{\"class\":\"service\",\"command\":\"eventCommand\",\"event\":\"%1\"%2}").arg(event,additional_json_fields.isEmpty() ? QString() : (QString(",") + additional_json_fields));
-    task.setTaskData(QByteArray(send_data.toLatin1()));
-    _tasks.append(task);
-}
-
-void QSHManagerInfo::sendCommand(const QString & command,QJSONTask::JSON_ANSWER_WAIT parser) //Постановка задачи (команда)
-{
-    QJSONTask task2;
-    task2.setTimeout(22000);
-    task2.setInfinity(false); //Бесконечность исполнения
-    task2.setTaskData(command.toUtf8());  //Устанавливает и преобразует комнаду в ByteArray
-    qDebug()<<command;
-    task2.setAnswerParser(parser);        //Устанваливает пар
-    if (parser != QJSONTask::JSON_ANSWER_NONE)
-        task2.setLabel(++_label);
-    _tasks.append(task2); //Новая задача добавляется в список задач
-}
 
 void QSHManagerInfo::parseMessage(const QByteArray & data)  //Слот для команд/ответов
 {   
@@ -220,6 +207,20 @@ void QSHManagerInfo::parseJSONAnswer(const QVariantMap & answer)  //Расшиф
     break;
     }
 }
+
+/*
+void QSHManagerInfo::sendEvent(const QString & event,const QString & additional_json_fields)
+{
+    QMutexLocker locker(&local_mutex); //Например, эта сложная функция блокирует QMutex при вводе функции и разблокирует мьютекс во всех точках выхода:
+    QJSONTask task;
+    task.setAnswerParser(QJSONTask::JSON_ANSWER_NONE);
+    task.setInfinity(false);
+    QString send_data = QString("{\"class\":\"service\",\"command\":\"eventCommand\",\"event\":\"%1\"%2}").arg(event,additional_json_fields.isEmpty() ? QString() : (QString(",") + additional_json_fields));
+    task.setTaskData(QByteArray(send_data.toLatin1()));
+    _tasks.append(task);
+}
+*/
+
 /*
 void QSHManagerInfo::finished_socket_1() //Ретранслирует закрытие соединения на верх, в виджет
 {

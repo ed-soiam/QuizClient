@@ -3,7 +3,8 @@
 
 #include <QObject>
 #include "qtask.h"
-class QJSONTask : public QTask //Служит для передачи команды в сервер
+#include <QDebug>
+class QJSONTask : public QTask //Используется для обработки label и необходимости получения ответа
 {
     Q_OBJECT
 public:

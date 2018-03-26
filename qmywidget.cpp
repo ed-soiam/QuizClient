@@ -99,7 +99,7 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
   {
       if(connectSocket)
       {
-          delete managerInfo;
+          delete managerInfo; //Реализовано в деструкторое родителя QThreadObject::~QThreadObject()
           managerInfo = Q_NULLPTR;
           if(managerInfo==Q_NULLPTR)
           {
@@ -112,7 +112,7 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
       else if (managerInfo == Q_NULLPTR)
       {
           managerInfo=new QSHManagerInfo(0, comBoxIP->currentText());//Выделяем память, инициализируем с адресом порта
-          managerInfo->start();
+          managerInfo->start(); //Функция определенная в классе родителя
           connect(managerInfo,SIGNAL(setConnected(bool)),this,SLOT(slotSetConnectSocket(bool)),Qt::UniqueConnection);//Сигнал о подключении сокета, Qt::Unique коннектить один раз
           connect(managerInfo,SIGNAL(setVarMenu(QStringList)),this,SLOT(slotChoiceMenu(QStringList)));//Подключение сигнала с вариантом меню
           connect(managerInfo,SIGNAL(registerSuccessfully(bool)),this,SLOT(slotRegStatus(bool)));
@@ -126,7 +126,7 @@ void QMyWidget::slotRegStatus(bool regS) //Благополучная регис
 
 }
 
-void QMyWidget::regStatus(bool statusReg)
+void QMyWidget::regStatus(bool statusReg)//Изменение иконки со статусом
 {
     if(statusReg==true)
     {
@@ -138,9 +138,7 @@ void QMyWidget::regStatus(bool statusReg)
         QPixmap pixmapBed(strNameImage[0]);
         labelImage->setPixmap(pixmapBed.scaledToHeight(17));
     }
-
 }
-
 
   void QMyWidget::slotButtonUpdate() //Обновление списка подключений в comboBox
   {    
@@ -164,7 +162,7 @@ void QMyWidget::regStatus(bool statusReg)
             buttonConnect->setText("Отключить");
   }
 
-  void QMyWidget::buttonDeleteGame()
+  void QMyWidget::buttonDeleteGame()//Кнопки нужно удалять из слота и из самого виджета, поэтому пришлось добавить отдельную функцию
   {
       if(!listPushButton.isEmpty())
       {
@@ -185,7 +183,7 @@ void QMyWidget::regStatus(bool statusReg)
       QStringList listStringButton;
       listStringButton=numberMenu;      
 
-      if(listStringButton.isEmpty()) //Удаление меню при приходте пустого варианта меню
+      if(listStringButton.isEmpty()) //Удаление меню при приходте пустого варианта игры
       {
           buttonDeleteGame();
       }

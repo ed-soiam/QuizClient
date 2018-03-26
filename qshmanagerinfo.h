@@ -16,7 +16,7 @@ public:
     explicit QSHManagerInfo(QObject *parent = 0, const QString & path = QString()); //Конструктор
     virtual ~QSHManagerInfo();
     //отправка JSON event/событие в сокет с возможностью добавления доп. информации в additional_json_fields(например QString("\"ip\":\"192.168.0.11\""))
-    void sendEvent(const QString & event,const QString & additional_json_fields = QString());
+    //void sendEvent(const QString & event,const QString & additional_json_fields = QString()); //Я использую sendCommand
     //Отправка команды, аналог сигнал/слот
     void sendCommand(const QString & command,QJSONTask::JSON_ANSWER_WAIT parser = QJSONTask::JSON_ANSWER_NONE);   
     void finished_socket_1();
@@ -32,8 +32,8 @@ private slots:
     void parseMessage(const QByteArray & data); //Слот/первичный парсер сообщений от сервера
 
 private:
-    virtual void process();
-    void execTasks();
+    virtual void process(); //Виртуальный слот переопределенный от родителя. вызывается при удачном подключении сокет
+    void execTasks();       //Выполнение задчач из списка. Список нужен для последовательной обработки большого количества задач (при необходимости).
     void parseJSONAnswer(const QVariantMap & answer); //Расшифровка сообщения
     void parseJSON_Gui(const QVariantMap & answer);   //Расшифровка сообщения Gui, наверное, нужно будет добавить в общий парсер
 
