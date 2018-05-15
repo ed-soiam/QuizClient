@@ -1,6 +1,6 @@
 #include "qtwraptextpushbutton.h"
 
-QtWrapTextPushButton::QtWrapTextPushButton(QWidget *parent) : QWidget(parent)
+QtWrapTextPushButton::QtWrapTextPushButton(QWidget *parent) : QPushButton(parent)
 {
-
+    setStyle(new QtPushButtonStyleProxy());
 }

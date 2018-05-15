@@ -19,19 +19,16 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
     buttonRegister->setText("Регистрация");
     comBoxIP = new QComboBox;
     comBoxIP->setMinimumContentsLength(13);
-    labelIP=new QLabel("Адрес");
     buttonConnect->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     buttonUpdate->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     buttonRegister->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     comBoxIP->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
-    labelIP->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
 
 
     setLayout(v_BoxLayout);
     v_BoxLayout->addWidget(frameButton);
     frameButton->setFrameShape(QFrame::Panel);
     frameButton->setLayout(h_BoxLayout);
-    h_BoxLayout->addWidget(labelIP);
     h_BoxLayout->addWidget(comBoxIP);
     h_BoxLayout->addWidget(buttonConnect);
     h_BoxLayout->addWidget(buttonUpdate);
@@ -80,7 +77,6 @@ QMyWidget::QMyWidget(QWidget *parent) : QWidget(parent)//,
                   listPushButton[i]=Q_NULLPTR;
               }
       }
-      delete labelIP;
       delete comBoxIP;
       delete buttonConnect;
       delete buttonUpdate;
@@ -160,6 +156,8 @@ void QMyWidget::regStatus(bool statusReg)//Изменение иконки со 
       connectSocket=value;
       if(connectSocket)
             buttonConnect->setText("Отключить");
+      comBoxIP->setEnabled(!connectSocket);
+      buttonUpdate->setEnabled(!connectSocket);
   }
 
   void QMyWidget::buttonDeleteGame()//Кнопки нужно удалять из слота и из самого виджета, поэтому пришлось добавить отдельную функцию
@@ -191,7 +189,7 @@ void QMyWidget::regStatus(bool statusReg)//Изменение иконки со 
       if(listPushButton.isEmpty())
       {
           for(int i=0; i<listStringButton.length(); i++){ //Создание указателей кнопок
-              listPushButton.append(new QPushButton());}
+              listPushButton.append(new QtWrapTextPushButton());}
 
           for(int i=0; i<listPushButton.length(); i++)
                       connect(listPushButton.at(i), SIGNAL(clicked(bool)),this,SLOT(slotButtonGame()));

@@ -5,32 +5,28 @@
 
 MyClient::MyClient()//: QObject()
 {
-    for (int i=0; i<256; i++){                     // Создание указателей для 255 отдельных подключений
-        m_pTcpSocket = new MyTcpSocket;            //Создание указателя для отдельного соединения
-        socketList.append(m_pTcpSocket);}          //Сохранение указателей в контейнер
-
-    for(int i=0; i < socketList.length();i++ )
-           connect (socketList.at(i), SIGNAL(readyRead()),this, SLOT(slotReadyRead())); //Соединение готово к чтению
-
-    for(int i=0; i < socketList.length();i++ )
-        connect(socketList.at(i), SIGNAL(signalAddrOpenPort(QHostAddress)),
+    for (int i=0; i<256; i++)
+    {                       // Создание указателей для 255 отдельных подключений
+                            //Создание указателя для отдельного соединения
+        socketList.append(new MyTcpSocket);          //Сохранение указателей в контейнер
+        connect (socketList.last(), SIGNAL(readyRead()),this, SLOT(slotReadyRead())); //Соединение готово к чтению
+        connect(socketList.last(), SIGNAL(signalAddrOpenPort(QHostAddress)),
             this, SLOT(slotAddrOpenPort(QHostAddress)) //Добавить адрес открытого порта
            );
-
-    for(int i=0; i < socketList.length();i++ )
-        connect(socketList.at(i), SIGNAL(signalAddrClosedPort(QHostAddress)),
+        connect(socketList.last(), SIGNAL(signalAddrClosedPort(QHostAddress)),
             this, SLOT(slotAddrClosedPort(QHostAddress)) //Добавить адрес закрытого порта
            );
-
+    }
     myHostAddress();                    //Определение своего IP
     myConnectHost();                    //Попытка подключения к всем возможным адресам сети
 }
-/*
+
 MyClient::~MyClient()
 {
-
+    for (int i=0; i<socketList.size(); i++)
+        delete socketList.at(i);
 }
-*/
+
 //****************************************************************************************
 //Определение своего адреса в локальной сети
 

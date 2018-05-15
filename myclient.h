@@ -24,7 +24,7 @@ class MyClient : public QObject
 public:
     MyClient();
     void updateConnectHost();
-
+    virtual ~MyClient();
 private:
     void myConnectHost();
     void myHostAddress();

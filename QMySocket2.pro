@@ -6,10 +6,12 @@
 
 QT       += core gui network
 
+QMAKE_CXXFLAGS += -std=c++0x
+CONFIG += c++14
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 #Имя проекта
-TARGET = QMySocket2
+TARGET = QuizClient
 #Задает разновидность проекта: app - приложение, lib - библиотека, subdirs - поддиректория
 TEMPLATE = app
 
@@ -38,7 +40,8 @@ SOURCES += main.cpp\
     qtask/qtask.cpp \
     myThreadSocket/qshmanagerinfo.cpp \
     myThreadSocket/qthreadobject.cpp \
-    myThreadSocket/QThreadSocket.cpp
+    myThreadSocket/QThreadSocket.cpp \
+    qtwraptextpushbutton.cpp
 
 HEADERS  += \
     myclient.h \
@@ -52,13 +55,9 @@ HEADERS  += \
     qtask/qtask.h \
     myThreadSocket/qshmanagerinfo.h \
     myThreadSocket/qthreadobject.h \
-    myThreadSocket/QThreadSocket.h
-
-
-
-
-
-#FORMS    += mainwindow.ui
+    myThreadSocket/QThreadSocket.h \
+    qtwraptextpushbutton.h
 
 RESOURCES += \
     res.qrc
+

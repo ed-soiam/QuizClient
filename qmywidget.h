@@ -5,7 +5,6 @@
 //#include "mainwindow.h"
 //#include <QMainWindow>
 #include <QApplication>
-#include "MyClient.h"
 #include <QTcpSocket>
 #include <QtWidgets>
 #include "myclient.h"
@@ -17,6 +16,7 @@
 #include <QSizePolicy>
 #include <QPushButton>
 #include <QSpacerItem>
+#include "qtwraptextpushbutton.h"
 
 class QMyWidget : public QWidget
 {
@@ -37,7 +37,6 @@ private:
     QToolButton* buttonRegister;
     QList<QPushButton*> listPushButton; //Список кнопок    
     QComboBox* comBoxIP;
-    QLabel* labelIP;
     QSHManagerInfo* managerInfo=0;//Подключение
     bool connectSocket=false;
     QSettings app_settings;
